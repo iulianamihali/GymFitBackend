@@ -1,6 +1,7 @@
 ﻿using GymFit.Data;
 using GymFit.DTOs;
 using GymFit.Services;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
 namespace GymFit.Controllers
@@ -17,7 +18,7 @@ namespace GymFit.Controllers
         }
 
         [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginRequest request)
+        public IActionResult Login([FromBody] LoginRequestDto request)
         {
             var user = _authService.ValidateLogin(request.Email, request.Password);
             if(user == null)
@@ -39,6 +40,22 @@ namespace GymFit.Controllers
 
 
             });
+        }
+
+        [HttpPost("register")]
+        public IActionResult Register([FromBody] RegisterRequestDto request)
+        {
+            var newUser = _authService.RegisterUser(request);
+            var token = _authService.GenerateJwtToken(newUser);
+            var response = new LoginResponseDto
+            {
+                Token = token,
+                UserId = newUser.Id,
+                UserName = $"{newUser.FirstName}, {newUser.LastName}",
+                Email = newUser.Email,
+                UserType = newUser.UserType
+            };
+            return Ok(response);
         }
 
     }

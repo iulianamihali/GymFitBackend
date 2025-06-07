@@ -4,6 +4,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
+using GymFit.DTOs;
+using Microsoft.AspNetCore.Identity;
+
 
 
 namespace GymFit.Services
@@ -12,6 +15,7 @@ namespace GymFit.Services
     {
         private readonly GymFitContext _context;
         private readonly IConfiguration _configuration;
+        private readonly PasswordHasher<User> _passwordHasher = new();
 
         public AuthService(GymFitContext context,IConfiguration configuration)
         {
@@ -22,13 +26,35 @@ namespace GymFit.Services
         public User? ValidateLogin(string email, string password)
         {
             var user = _context.Users.FirstOrDefault(u => u.Email == email);
-            if(user == null || user.PasswordHash != password)
+            if (user == null)
+                return null;
+            var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password);
+            if(result == PasswordVerificationResult.Failed)
             {
                 return null;
             }
             return user;
 
 
+        }
+        public User RegisterUser(RegisterRequestDto request)
+        {
+            var newUser = new User
+            {
+                Id = Guid.NewGuid(),
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                Email = request.Email,
+                Gender = request.Gender,
+                DateOfBirth = DateOnly.Parse(request.DateOfBirth),
+                PhoneNumber = request.PhoneNumber,
+                Address = request.Address,
+                UserType = "Client"
+            };
+            newUser.PasswordHash = _passwordHasher.HashPassword(newUser, request.Password);
+            _context.Users.Add(newUser);
+            _context.SaveChanges();
+            return newUser;
         }
 
         public String GenerateJwtToken(User user)
