@@ -1,6 +1,7 @@
 ﻿using GymFit.DTOs;
 using GymFit.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
 
 namespace GymFit.Controllers
@@ -11,7 +12,7 @@ namespace GymFit.Controllers
     {
         private readonly ClientService _clientService;
         public ClientController(ClientService clientService) {
-            _clientService = clientService; 
+            _clientService = clientService;
         }
 
 
@@ -57,11 +58,43 @@ namespace GymFit.Controllers
             var result = await _clientService.GetAvailableTrainerIntervals(model.ClientId, model.SelectedDate);
             return Ok(result);
         }
+
         [HttpPost("addSession")]
         public async Task<IActionResult> AddSession(AddSessionRequestDto model)
         {
             var result = await _clientService.AddSession(model);
-            return Ok(result); 
+            return Ok(result);
         }
+
+
+        [EnableQuery]
+        [HttpGet("trainerCardInfo")]
+        public IActionResult GetTrainerCardInfo()
+        {
+            var result = _clientService.GetTrainerCardInfoAsQueryable(null);
+            return Ok(result);
+        }
+
+        [HttpGet("allSpecializations")]
+        public async Task<IActionResult> GetAllSpecializations()
+        {
+            var result = await _clientService.GetAllSpecializations();
+            return Ok(result);
+        }
+
+        [HttpPost("addEnrollmentClientTrainer")]
+        public async Task<IActionResult> AddEnrollment(EnrollmentClientTrainerModelDto model)
+        {
+            var result = await _clientService.AddEnrollment(model);
+            return Ok(result);
+        }
+
+        [HttpGet("myTrainers/{clientId}")]
+        public async Task<IActionResult> MyTrainers(Guid clientId)
+        {
+            var result = await _clientService.GetMyTrainers(clientId);
+            return Ok(result);  
+        }
+
     }
 }

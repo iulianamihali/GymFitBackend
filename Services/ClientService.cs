@@ -218,5 +218,84 @@ namespace GymFit.Services
 
         }
 
+        public IQueryable<TrainerCardResponseDto> GetTrainerCardInfoAsQueryable(string? specialization)
+        {
+            var query = _context.Trainers
+                .Include(e => e.User)
+                .Include(e => e.Reviews)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(specialization))
+            {
+                query = query.Where(x => x.Specialization == specialization);
+            }
+
+            return query.Select(e => new TrainerCardResponseDto
+            {
+                Id = e.UserId,
+                Name = e.User.FirstName + " " + e.User.LastName,
+                Specialization = e.Specialization,
+                Rating = e.Reviews.Count > 0 ? e.Reviews.Sum(x => x.RatingValue) / e.Reviews.Count : 0,
+                Certification = e.Certification,
+                PricePerHour = e.PricePerHour,
+                StartInterval = e.StartInterval,
+                EndInterval = e.EndInterval,
+                YearsOfExperience = e.YearsOfExperience
+            });
+        }
+
+        public async Task<List<string>> GetAllSpecializations()
+        {
+            var result = await _context.Trainers
+                .Select(x => x.Specialization)
+                .Distinct()
+                .OrderBy(x => x)
+                .ToListAsync();
+
+            return result;
+                
+        }
+
+        public async Task<bool> AddEnrollment(EnrollmentClientTrainerModelDto model)
+        {
+            ClientTrainerEnrollment enrollment = new ClientTrainerEnrollment { 
+                Id = Guid.NewGuid(),
+                StartDate = model.StartDate,
+                EndDate = model.EndDate,
+                ClientId = model.ClientId,
+                TrainerId = model.TrainerId,
+            };
+
+            _context.ClientTrainerEnrollments.Add(enrollment);
+            var result = (await _context.SaveChangesAsync()) > 0;
+            return result;
+
+
+        }
+
+        public async Task<List<TrainerCardResponseDto>> GetMyTrainers(Guid clientId)
+        {
+            var result = await _context.ClientTrainerEnrollments
+                .Include(e => e.Trainer)
+                    .ThenInclude(e => e.User)
+                .Include(e => e.Trainer.Reviews)
+                .Where(e => e.ClientId == clientId)
+                .OrderByDescending(x => x.EndDate)
+                .Select(e => new TrainerCardResponseDto
+                {
+                    Id = e.TrainerId.Value,
+                    Name = e.Trainer.User.FirstName + " " + e.Trainer.User.LastName,
+                    Specialization = e.Trainer.Specialization,
+                    Rating = e.Trainer.Reviews.Count > 0 ? e.Trainer.Reviews.Sum(x => x.RatingValue) / e.Trainer.Reviews.Count : 0,
+                    Certification = e.Trainer.Certification,
+                    PricePerHour = e.Trainer.PricePerHour,
+                    StartInterval = e.Trainer.StartInterval,
+                    EndInterval = e.Trainer.EndInterval,
+                    YearsOfExperience = e.Trainer.YearsOfExperience
+                })
+                .ToListAsync();
+            return result;
+        }
+
     }
 }
