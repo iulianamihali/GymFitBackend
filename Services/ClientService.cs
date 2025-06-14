@@ -1,6 +1,7 @@
 ﻿using GymFit.Data;
 using GymFit.DTOs;
 using GymFit.Models;
+using Microsoft.AspNetCore.OData.Query;
 using Microsoft.EntityFrameworkCore;
 
 namespace GymFit.Services
@@ -296,6 +297,94 @@ namespace GymFit.Services
                 .ToListAsync();
             return result;
         }
+
+        public IQueryable <CoursesCardResponseDto > GetCourses(string? searchCourse)
+        {
+            var query = _context.Courses
+                .Include(e => e.Trainer)
+                    .ThenInclude(e => e.User)
+                .Include(e => e.ClientCourseEnrollments)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(searchCourse))
+            {
+                searchCourse = searchCourse.ToLower();
+                query = query.Where(e => e.Title.ToLower().Contains(searchCourse));
+            }
+
+            var result = query
+                .Select(e => new CoursesCardResponseDto
+                {
+                    CourseId = e.Id,
+                    Title = e.Title,
+                    Description = e.Description,
+                    Price = e.Price,
+                    MaxParticipants = e.MaxParticipants,
+                    TrainerName = e.Trainer.User.FirstName + " " + e.Trainer.User.LastName,
+                    Active = e.Active,
+                    TotalParticipants = e.ClientCourseEnrollments.Count
+                })
+                ;
+
+            return result;
+        }
+
+        public async Task<string> EnrollmentCourse(EnrollmentCourseDto model)
+        {
+            var isEnrolled = await _context.ClientCourseEnrollments.FirstOrDefaultAsync(x => x.ClientId == model.ClientId);
+            if (isEnrolled != null) {
+                return "Failed";
+            }
+            ClientCourseEnrollment enroll = new ClientCourseEnrollment
+            {
+                Id = Guid.NewGuid(),
+                EnrollmentDate = DateTime.Now,
+                ClientId = model.ClientId,
+                CourseId = model.CourseId
+            };
+            _context.ClientCourseEnrollments.Add(enroll);
+            var result = (await _context.SaveChangesAsync()) > 0;
+            return "Success";
+
+        }
+
+        public async Task<SettingsClientInfoDto> GetInfoUser(Guid ClientId)
+        {
+            var user = await _context.Users
+                .Where(x => x.Id == ClientId)
+                .Select(x => new SettingsClientInfoDto
+                {
+                    Id = x.Id,
+                    FirstName = x.FirstName,
+                    LastName = x.LastName,
+                    Address = x.Address,
+                    Email = x.Email,
+                    PhoneNumber = x.PhoneNumber,
+                    UserType = x.UserType,
+                })
+                .FirstOrDefaultAsync();
+            return user;
+                
+               
+          
+        }
+
+        public async Task<bool> EditProfile(SettingsClientInfoDto model)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == model.Id);
+            if (user != null)
+            {
+                user.FirstName = model.FirstName;
+                user.LastName = model.LastName;
+                user.Address = model.Address;
+                user.PhoneNumber = model.PhoneNumber;
+                _context.Users.Update(user);
+                var result = (await _context.SaveChangesAsync()) > 0;
+                return result;
+            }
+            return false;
+        }
+
 
     }
 }

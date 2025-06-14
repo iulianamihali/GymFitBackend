@@ -96,5 +96,34 @@ namespace GymFit.Controllers
             return Ok(result);  
         }
 
+        [EnableQuery]
+        [HttpGet("coursesCardInfo")]
+        public IActionResult CoursesCardInfo([FromQuery] string? searchCourse)
+        {
+            var result = _clientService.GetCourses(searchCourse);
+            return Ok(result);
+        }
+
+        [HttpPost("enrollmentCourse")]
+        public async Task<IActionResult> EnrollmentCourse(EnrollmentCourseDto model)
+        {
+            var result = await _clientService.EnrollmentCourse(model);
+            return Ok(result);
+        }
+
+        [HttpGet("settingsInfoClient/{clientId}")]
+        public async Task<IActionResult> SettingsInfoClient(Guid clientId)
+        {
+            var result = await _clientService.GetInfoUser(clientId);
+            return Ok(result);
+        }
+
+        [HttpPut("editProfile")]
+        public async Task<IActionResult> EditProfile(SettingsClientInfoDto model)
+        {
+            var result = await _clientService.EditProfile(model);
+            return Ok(result);
+        }
+
     }
 }
