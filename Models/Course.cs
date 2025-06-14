@@ -16,6 +16,7 @@ public partial class Course
     public int MaxParticipants { get; set; }
 
     public Guid? TrainerId { get; set; }
+    public bool Active { get; set; }
 
     public virtual ICollection<ClientCourseEnrollment> ClientCourseEnrollments { get; set; } = new List<ClientCourseEnrollment>();
 

@@ -27,19 +27,16 @@ namespace GymFit.Controllers
             }
 
             var token = _authService.GenerateJwtToken(user);
-            return Ok(new
+            var response = new LoginResponseDto
             {
-                token = token,
-                user = new
-                {
-                    id = user.Id,
-                    name = $"{user.FirstName},{user.LastName}",
-                    email = user.Email,
-                    role = user.UserType.ToString()
-                }
+                Token = token,
+                UserId = user.Id,
+                UserName = $"{user.FirstName} {user.LastName}",
+                Email = user.Email,
+                UserType = user.UserType
+            };
 
-
-            });
+            return Ok(response);
         }
 
         [HttpPost("register")]
@@ -51,7 +48,7 @@ namespace GymFit.Controllers
             {
                 Token = token,
                 UserId = newUser.Id,
-                UserName = $"{newUser.FirstName}, {newUser.LastName}",
+                UserName = $"{newUser.FirstName} {newUser.LastName}",
                 Email = newUser.Email,
                 UserType = newUser.UserType
             };

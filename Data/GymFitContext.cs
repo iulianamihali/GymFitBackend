@@ -26,13 +26,12 @@ public partial class GymFitContext : DbContext
 
     public virtual DbSet<Review> Reviews { get; set; }
 
-    public virtual DbSet<Schedule> Schedules { get; set; }
-
     public virtual DbSet<Subscription> Subscriptions { get; set; }
 
     public virtual DbSet<Trainer> Trainers { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
+    public virtual DbSet<TrainingSession> TrainingSessions { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -101,6 +100,7 @@ public partial class GymFitContext : DbContext
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Description).HasColumnType("text");
             entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Active).HasColumnType("bit");
             entity.Property(e => e.Title)
                 .HasMaxLength(256)
                 .IsUnicode(false);
@@ -108,6 +108,7 @@ public partial class GymFitContext : DbContext
             entity.HasOne(d => d.Trainer).WithMany(p => p.Courses)
                 .HasForeignKey(d => d.TrainerId)
                 .HasConstraintName("FK__Course__TrainerI__4CA06362");
+           
         });
 
         modelBuilder.Entity<Review>(entity =>
@@ -129,18 +130,27 @@ public partial class GymFitContext : DbContext
                 .HasConstraintName("FK__Review__TrainerI__45F365D3");
         });
 
-        modelBuilder.Entity<Schedule>(entity =>
+        modelBuilder.Entity<TrainingSession>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Schedule__3214EC07E35EF0C2");
+            entity.HasKey(e => e.Id).HasName("PK__Training__3214EC070473A65E");
 
-            entity.ToTable("Schedule");
+            entity.ToTable("TrainingSession");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
 
-            entity.HasOne(d => d.Trainer).WithMany(p => p.Schedules)
-                .HasForeignKey(d => d.TrainerId)
-                .HasConstraintName("FK__Schedule__Traine__3F466844");
+            entity.Property(e => e.StartDateTime).HasColumnType("datetime");
+            
+            entity.Property(e => e.Notes).HasColumnType("text");
+
+            entity.HasOne(e => e.Client).WithMany(e => e.TrainingSessions)
+                .HasForeignKey(e => e.ClientId)
+                .HasConstraintName("FK__TrainingS__Clien__60A75C0F");
+
+            entity.HasOne(e => e.Trainer).WithMany(e => e.TrainingSessions)
+                .HasForeignKey(e => e.TrainerId)
+                .HasConstraintName("FK__TrainingS__Train__619B8048");
         });
+
 
         modelBuilder.Entity<Subscription>(entity =>
         {

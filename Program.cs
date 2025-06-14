@@ -27,6 +27,21 @@ builder.Services.AddDbContext<GymFitContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("GymFitDb")));
 //AddScoped bcs AuthService is using DbContext 
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<ClientService>();
+// how to validate tokens
+builder.Services.AddAuthentication("Bearer")
+    .AddJwtBearer("Bearer", options =>
+    {
+        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
+                System.Text.Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:SecretKey"]))
+        };
+    });
 
 var app = builder.Build();
 
@@ -40,6 +55,9 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseCors();
+
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 

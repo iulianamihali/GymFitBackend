@@ -17,5 +17,7 @@ public partial class Client
 
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
 
+    public virtual ICollection<TrainingSession> TrainingSessions { get; set; } = new List<TrainingSession>();
+
     public virtual User User { get; set; } = null!;
 }
