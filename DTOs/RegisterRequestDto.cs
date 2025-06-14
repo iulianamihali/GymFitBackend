@@ -28,5 +28,14 @@ namespace GymFit.DTOs
 
         [Required]
         public string Address { get; set; }
+        [Required]
+        public string UserType { get; set; }
+        public string Specialization {  get; set; }
+        public int YearsOfExperience { get; set; }
+        public string Certification {  get; set; }
+        public decimal PricePerHour { get; set; }
+        public string StartInterval { get; set; }
+        public string EndInterval { get; set; }
+
     }
 }

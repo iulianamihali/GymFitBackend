@@ -49,10 +49,39 @@ namespace GymFit.Services
                 DateOfBirth = DateOnly.Parse(request.DateOfBirth),
                 PhoneNumber = request.PhoneNumber,
                 Address = request.Address,
-                UserType = "Client"
+                UserType = request.UserType
             };
             newUser.PasswordHash = _passwordHasher.HashPassword(newUser, request.Password);
             _context.Users.Add(newUser);
+            if (request.UserType == "Client")
+                {
+                Client client = new Client
+                {
+                    UserId = newUser.Id,
+                    Goal = null,
+                    HealthNotes = null
+                };
+                _context.Clients.Add(client);
+            }
+                
+            else if (request.UserType == "Trainer")
+                {
+                Trainer trainer = new Trainer
+                    {
+                    UserId = newUser.Id,
+                    Specialization = request.Specialization,
+                    YearsOfExperience = request.YearsOfExperience,
+                    Certification = request.Certification,
+                    PricePerHour = request.PricePerHour,
+                    StartInterval = request.StartInterval,
+                    EndInterval = request.EndInterval,
+
+                    };
+                    _context.Trainers.Add(trainer);
+
+                }
+                
+
             _context.SaveChanges();
             return newUser;
         }

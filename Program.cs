@@ -34,6 +34,7 @@ builder.Services.AddDbContext<GymFitContext>(options =>
 //AddScoped bcs AuthService is using DbContext 
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ClientService>();
+builder.Services.AddScoped<TrainerService>();
 // how to validate tokens
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", options =>
