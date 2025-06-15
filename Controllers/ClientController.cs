@@ -133,5 +133,12 @@ namespace GymFit.Controllers
             var result = await _clientService.LeaveReview(model);
             return Ok(result);
         }
+
+        [HttpGet("getReviews/{trainerId}")]
+        public async Task<IActionResult> getReviews(Guid trainerId)
+        {
+            var result = await _clientService.GetReviews(trainerId);
+            return Ok(result);
+        }
     }
 }

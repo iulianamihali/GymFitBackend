@@ -403,5 +403,27 @@ namespace GymFit.Services
 
         }
 
+        public async Task<List<GetReviewsDto>> GetReviews(Guid TrainerId)
+        {
+            var result = await _context.Reviews
+                .Include(x => x.Trainer)
+                .Include(x => x.Client)
+                    .ThenInclude(x => x.User)
+                 .Where(x => x.TrainerId == TrainerId)
+                .OrderByDescending(x => x.CreatedAt)
+                .Select(x => new GetReviewsDto
+                {
+                    CreatedAt = x.CreatedAt,
+                    RatingValue = x.RatingValue,
+                    Comment = x.Comment,
+                    ClientName = x.Client.User.FirstName + " " + x.Client.User.LastName,
+                    TrainerName = x.Trainer.User.FirstName + " " + x.Trainer.User.LastName
+                })
+                .ToListAsync();
+
+            return result;
+
+        }
+
     }
 }
