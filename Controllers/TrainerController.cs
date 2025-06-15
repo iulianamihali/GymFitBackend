@@ -1,4 +1,5 @@
-﻿using GymFit.Services;
+﻿using GymFit.DTOs.Trainer;
+using GymFit.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
 
@@ -40,6 +41,20 @@ namespace GymFit.Controllers
         public async Task<IActionResult> CoursesCreated(Guid trainerId)
         {
             var result = await _trainerService.CoursesCreated(trainerId);
+            return Ok(result);
+        }
+
+        [HttpPut("editCourse")]
+        public async Task<IActionResult> EditCourse(CoursesCreatedDto model)
+        {
+            var result = await _trainerService.EditCourse(model);
+            return Ok(result);
+        }
+
+        [HttpPost("addCourse/{trainerId}")]
+        public async Task<IActionResult> AddCourse([FromBody] CoursesCreatedDto coursedto, [FromRoute] Guid trainerId)
+        {
+            var result = await _trainerService.AddCourse(coursedto, trainerId);
             return Ok(result);
         }
     }

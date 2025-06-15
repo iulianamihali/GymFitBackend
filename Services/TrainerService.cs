@@ -87,16 +87,59 @@ namespace GymFit.Services
         {
             var result = await _context.Courses
                 .Include(e => e.ClientCourseEnrollments)
-                .Where(e => e.TrainerId == trainerId && e.Active)
+           
+                .Where(e => e.TrainerId == trainerId)
+                .OrderByDescending(e => e.Active)
                 .Select(e => new CoursesCreatedDto
+                
                 {
+                    Id = e.Id,
                     Title = e.Title,
                     Description = e.Description,
                     Price = e.Price,
                     MaxParticipants = e.MaxParticipants,
                     TotalParticipants = e.ClientCourseEnrollments.Count,
+                    Active = e.Active,
 
                 }).ToListAsync();
+            return result;
+        }
+
+        public async Task<bool> EditCourse(CoursesCreatedDto info)
+        {
+            var result = await _context.Courses
+                .Where(e => e.Id == info.Id)
+                .FirstOrDefaultAsync();
+            if(result != null)
+            {
+                result.Title = info.Title;
+                result.Description = info.Description;
+                result.Price = info.Price;
+                result.MaxParticipants = info.MaxParticipants;
+                result.Active = info.Active; 
+                _context.Courses.Update(result);
+                _context.SaveChanges();
+                return true;
+            }
+            return false;
+            
+        }
+
+        public async Task<bool> AddCourse(CoursesCreatedDto coursedto, Guid trainerId)
+        {
+            Course course = new Course
+            {
+                Id = Guid.NewGuid(),
+                Title = coursedto.Title,
+                Description = coursedto.Description,
+                Price = coursedto.Price,
+                MaxParticipants = coursedto.MaxParticipants,
+                Active = coursedto.Active,
+                TrainerId = trainerId
+            };
+
+            _context.Courses.Add(course);
+            var result = (await _context.SaveChangesAsync()) > 0;
             return result;
         }
     }
