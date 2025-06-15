@@ -1,11 +1,13 @@
 ﻿using GymFit.DTOs;
 using GymFit.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
 
 namespace GymFit.Controllers
 {
+    [Authorize(Roles = "Client")]
     [ApiController]
     [Route("api/[controller]")]
     public class ClientController : ODataController

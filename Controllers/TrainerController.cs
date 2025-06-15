@@ -1,10 +1,12 @@
 ﻿using GymFit.DTOs.Trainer;
 using GymFit.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
 
 namespace GymFit.Controllers
 {
+    [Authorize(Roles = "Trainer")]
     [ApiController]
     [Route("api/[controller]")]
     public class TrainerController : ODataController
@@ -62,6 +64,20 @@ namespace GymFit.Controllers
         public async Task<IActionResult> AllClients(Guid trainerId)
         {
             var result = await _trainerService.GetClients(trainerId);
+            return Ok(result);
+        }
+
+        [HttpGet("profileTrainer/{trainerId}")]
+        public async Task<IActionResult> ProfileTrainer(Guid trainerId)
+        {
+            var result = await _trainerService.ProfileTrainer(trainerId);
+            return Ok(result);
+        }
+
+        [HttpPut("editTrainerProfile")]
+        public async Task<IActionResult> EditProfileTrainer(TrainerProfileSettingsDto model)
+        {
+            var result = await _trainerService.EditProfileTrainer(model);
             return Ok(result);
         }
     }

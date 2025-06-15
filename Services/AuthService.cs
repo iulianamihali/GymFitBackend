@@ -93,7 +93,7 @@ namespace GymFit.Services
                 new Claim("id", user.Id.ToString()),
                 new Claim("email",user.Email),
                 new Claim("name", $"{user.FirstName}, {user.LastName}"),
-                new Claim("role", user.UserType.ToString())
+                new Claim(ClaimTypes.Role, user.UserType.ToString())
             };
 
             var secretKey = _configuration["JwtSettings:SecretKey"];

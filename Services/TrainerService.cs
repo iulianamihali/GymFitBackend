@@ -163,6 +163,61 @@ namespace GymFit.Services
                 .ToListAsync();
             return result;
 
-    }
+         }
+
+
+        public async Task<TrainerProfileSettingsDto> ProfileTrainer(Guid trainerId)
+        {
+            var result = await _context.Trainers
+                .Include(e => e.User)
+                .Where(e => e.UserId == trainerId)
+                .Select(e => new TrainerProfileSettingsDto
+                {
+                    Id = e.UserId,
+                    FirstName = e.User.FirstName,
+                    LastName = e.User.LastName,
+                    Address = e.User.Address,
+                    Email = e.User.Email,
+                    PhoneNumber = e.User.PhoneNumber,
+                    Specialization = e.Specialization,
+                    YearsOfExperience = e.YearsOfExperience,
+                    Certification = e.Certification,
+                    PricePerHour = e.PricePerHour,
+                    StartInterval = e.StartInterval,
+                    EndInterval = e.EndInterval,
+                }).FirstOrDefaultAsync();
+            return result;
+        }
+
+        public async Task<bool> EditProfileTrainer(TrainerProfileSettingsDto model)
+        {
+            var result = await _context.Trainers
+                .Include(e => e.User)
+                .Where(e => e.UserId == model.Id)
+                .FirstOrDefaultAsync();
+            if (result != null)
+            {
+                result.UserId = model.Id;
+                result.User.FirstName = model.FirstName;
+                result.User.LastName = model.LastName;
+                result.User.Address = model.Address;
+                result.User.Email = model.Email;
+                result.User.PhoneNumber = model.PhoneNumber;
+                result.Specialization = model.Specialization;
+                result.YearsOfExperience = model.YearsOfExperience;
+                result.Certification = model.Certification;
+                result.PricePerHour = model.PricePerHour;
+                result.StartInterval = model.StartInterval;
+                result.EndInterval = model.EndInterval;
+
+                _context.Trainers.Update(result);
+                var rez = (await _context.SaveChangesAsync()) > 0;
+                return rez;
+             };
+            return false;
+
+            
+
+        }
 }
 }
