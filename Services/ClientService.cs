@@ -385,6 +385,23 @@ namespace GymFit.Services
             return false;
         }
 
+        public async Task<bool> LeaveReview(LeaveReviewModelDto model)
+        {
+            Review newReview = new Review
+            {
+                Id = Guid.NewGuid(),
+                CreatedAt = DateTime.Now,
+                RatingValue = model.RatingValue,
+                Comment = model.Comment,
+                ClientId = model.ClientId,
+                TrainerId = model.TrainerId,
+            };
+
+            _context.Reviews.Add(newReview);
+             var result = (await _context.SaveChangesAsync()) > 0;
+             return result;
+
+        }
 
     }
 }

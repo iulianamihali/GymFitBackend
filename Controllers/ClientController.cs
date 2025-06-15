@@ -127,5 +127,11 @@ namespace GymFit.Controllers
             return Ok(result);
         }
 
+        [HttpPost("addReview")]
+        public async Task<IActionResult> AddReview(LeaveReviewModelDto model)
+        {
+            var result = await _clientService.LeaveReview(model);
+            return Ok(result);
+        }
     }
 }
