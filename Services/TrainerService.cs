@@ -142,5 +142,27 @@ namespace GymFit.Services
             var result = (await _context.SaveChangesAsync()) > 0;
             return result;
         }
+
+        public async Task<List<TrainerClientDto>> GetClients(Guid trainerId)
+        {
+            var result = await _context.ClientTrainerEnrollments
+                .Include(e => e.Client)
+                    .ThenInclude(e => e.User)
+                        .ThenInclude(e => e.Subscriptions)
+                .Where(e => e.TrainerId == trainerId && e.EndDate >= DateTime.Now)
+                .Select(e => new TrainerClientDto
+                {
+                    Name = e.Client.User.FirstName + " " + e.Client.User.LastName,
+                    SubscriptionType = e.Client.User.Subscriptions
+                        .OrderByDescending(s => s.ExpirationDate)
+                        .Select(s => s.Name)
+                            .FirstOrDefault() ?? "None",
+                    Email = e.Client.User.Email,
+                    PhoneNumber = e.Client.User.PhoneNumber,
+                })
+                .ToListAsync();
+            return result;
+
     }
+}
 }

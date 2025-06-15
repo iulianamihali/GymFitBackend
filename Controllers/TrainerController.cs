@@ -57,5 +57,12 @@ namespace GymFit.Controllers
             var result = await _trainerService.AddCourse(coursedto, trainerId);
             return Ok(result);
         }
+
+        [HttpGet("allClients/{trainerId}")]
+        public async Task<IActionResult> AllClients(Guid trainerId)
+        {
+            var result = await _trainerService.GetClients(trainerId);
+            return Ok(result);
+        }
     }
 }
