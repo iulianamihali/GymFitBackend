@@ -71,10 +71,16 @@ namespace GymFit.Controllers
 
         [EnableQuery]
         [HttpGet("trainerCardInfo")]
-        public IActionResult GetTrainerCardInfo()
+        public IQueryable<TrainerCardResponseDto> GetTrainerCardInfo()
         {
-            var result = _clientService.GetTrainerCardInfoAsQueryable(null);
-            return Ok(result);
+            return _clientService.GetTrainerCardInfoAsQueryable();
+        }
+
+        [HttpGet("trainers")]
+        public IActionResult GetTrainerCardInfo([FromQuery] string? specialization)
+        {
+            var result = _clientService.GetTrainersAsQueryable(specialization);
+            return Ok(result.ToList());
         }
 
         [HttpGet("allSpecializations")]

@@ -16,9 +16,9 @@ namespace GymFit.Services
 
         public List<MonthlyProgressDto> GetMonthlyProgress(Guid clientId)
         {
-            var SessionsPerMonth = _context.ClientTrainerEnrollments
-                .Where(e => e.ClientId == clientId && e.StartDate.Year == DateTime.Now.Year)
-                .GroupBy(e => e.StartDate.Month)
+            var SessionsPerMonth = _context.TrainingSessions
+                .Where(e => e.ClientId == clientId && e.StartDateTime.Year == DateTime.Now.Year && e.StartDateTime <= DateTime.Now)
+                .GroupBy(e => e.StartDateTime.Month)
                 .Select(g => new { Month = g.Key, Count = g.Count() });
 
             var result = new List<MonthlyProgressDto>();
@@ -219,14 +219,33 @@ namespace GymFit.Services
 
         }
 
-        public IQueryable<TrainerCardResponseDto> GetTrainerCardInfoAsQueryable(string? specialization)
+        public IQueryable<TrainerCardResponseDto> GetTrainerCardInfoAsQueryable()
+        {
+            return _context.Trainers
+                .Include(e => e.User)
+                .Include(e => e.Reviews)
+                .Select(e => new TrainerCardResponseDto
+                {
+                    Id = e.UserId,
+                    Name = e.User.FirstName + " " + e.User.LastName,
+                    Specialization = e.Specialization,
+                    Rating = e.Reviews.Count > 0 ? e.Reviews.Sum(x => x.RatingValue) / e.Reviews.Count : 0,
+                    Certification = e.Certification,
+                    PricePerHour = e.PricePerHour,
+                    StartInterval = e.StartInterval,
+                    EndInterval = e.EndInterval,
+                    YearsOfExperience = e.YearsOfExperience
+                });
+        }
+
+        public IQueryable<TrainerCardResponseDto> GetTrainersAsQueryable(string? specialization)
         {
             var query = _context.Trainers
                 .Include(e => e.User)
                 .Include(e => e.Reviews)
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(specialization))
+            if (!string.IsNullOrEmpty(specialization) && specialization != "All")
             {
                 query = query.Where(x => x.Specialization == specialization);
             }
@@ -244,6 +263,7 @@ namespace GymFit.Services
                 YearsOfExperience = e.YearsOfExperience
             });
         }
+
 
         public async Task<List<string>> GetAllSpecializations()
         {

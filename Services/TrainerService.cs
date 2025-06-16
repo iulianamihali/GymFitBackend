@@ -83,11 +83,31 @@ namespace GymFit.Services
 
         }
 
+        public async Task<List<CoursesCreatedDto>> CoursesActiveCreated(Guid trainerId)
+        {
+            var result = await _context.Courses
+                .Include(e => e.ClientCourseEnrollments)
+                .Where(e => e.TrainerId == trainerId && e.Active)
+                .OrderByDescending(e => e.Active)
+                .Select(e => new CoursesCreatedDto
+
+                {
+                    Id = e.Id,
+                    Title = e.Title,
+                    Description = e.Description,
+                    Price = e.Price,
+                    MaxParticipants = e.MaxParticipants,
+                    TotalParticipants = e.ClientCourseEnrollments.Count,
+                    Active = e.Active,
+
+                }).ToListAsync();
+            return result;
+        }
+
         public async Task<List<CoursesCreatedDto>> CoursesCreated(Guid trainerId)
         {
             var result = await _context.Courses
                 .Include(e => e.ClientCourseEnrollments)
-           
                 .Where(e => e.TrainerId == trainerId)
                 .OrderByDescending(e => e.Active)
                 .Select(e => new CoursesCreatedDto

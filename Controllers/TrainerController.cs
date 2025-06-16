@@ -39,6 +39,13 @@ namespace GymFit.Controllers
             return Ok(result);
         }
 
+        [HttpGet("coursesActiveCreatedByTrainer/{trainerId}")]
+        public async Task<IActionResult> CoursesActiveCreated(Guid trainerId)
+        {
+            var result = await _trainerService.CoursesActiveCreated(trainerId);
+            return Ok(result);
+        }
+
         [HttpGet("coursesCreatedByTrainer/{trainerId}")]
         public async Task<IActionResult> CoursesCreated(Guid trainerId)
         {

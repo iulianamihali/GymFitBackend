@@ -17,13 +17,18 @@ builder.Services.AddCors(options =>
 });
 
 
-// Add services to the container.
-
 builder.Services.AddControllers()
-     .AddOData(options =>
-     {
-         options.EnableQueryFeatures();
-     });
+    .AddOData(options =>
+    {
+        options
+            .Select()
+            .Filter()    
+            .OrderBy()
+            .Expand()
+            .Count()
+            .SetMaxTop(100);
+    });
+
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
