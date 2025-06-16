@@ -131,7 +131,7 @@ namespace GymFit.Services
 
         public async Task<List<TrainerIntervalResponseDto>> GetAvailableTrainerIntervals(Guid clientId, DateTime date)
         {
-            // 1. Găsim toți trainerii la care clientul e înscris activ
+            //all trainers in which the client is actively enrolled
             var trainers = await _context.ClientTrainerEnrollments
                 .AsNoTracking()
                 .Include(e => e.Trainer)
@@ -145,14 +145,16 @@ namespace GymFit.Services
 
             foreach (var trainer in trainers)
             {
-                // 2. Construim începutul și sfârșitul intervalului de lucru pentru ziua cerută
+              
+                  
                 var startTime = DateTime.ParseExact(trainer.StartInterval, "HH:mm", null);
                 var endTime = DateTime.ParseExact(trainer.EndInterval, "HH:mm", null);
 
                 var dayStart = date.Date.Add(startTime.TimeOfDay);
                 var dayEnd = date.Date.Add(endTime.TimeOfDay);
 
-                // 3. Luăm sesiunile ocupate ale trainerului în acea zi
+               
+               
                 var sessions = trainer.TrainingSessions
                     .Where(s => s.StartDateTime.Date == date.Date)
                     .Select(s => new
@@ -162,7 +164,6 @@ namespace GymFit.Services
                     })
                     .ToList();
 
-                // 4. Construim lista de intervale disponibile (ex: pași de 30 minute)
                 var availableIntervals = new List<string>();
                 var slot = dayStart;
 
@@ -170,7 +171,6 @@ namespace GymFit.Services
                 {
                     var nextSlot = slot.AddMinutes(60);
 
-                    // verificăm dacă se suprapune cu o sesiune deja rezervată
                     bool isOverlapping = sessions.Any(s =>
                         slot < s.End && nextSlot > s.Start
                     );
@@ -191,12 +191,42 @@ namespace GymFit.Services
                 });
             }
 
+            var sessionsNone = await _context.TrainingSessions
+                  .Where(s => s.StartDateTime.Date == date.Date && s.ClientId == clientId)
+                  .Select(s => new
+                  {
+                      Start = s.StartDateTime,
+                      End = s.StartDateTime.AddMinutes(s.DurationInMinutes)
+                  })
+                  .ToListAsync();
+
+            var availableIntervalsNone = new List<string>();
+            var dayStartNone = date.Date; 
+            var dayEndNone = date.Date.AddDays(1).AddTicks(-1);
+            var slotNone = dayStartNone;
+
+            while (slotNone < dayEndNone)
+            {
+                var nextSlot = slotNone.AddMinutes(60);
+
+                bool isOverlapping = sessionsNone.Any(s =>
+                    slotNone < s.End && nextSlot > s.Start
+                );
+
+                if (!isOverlapping && nextSlot <= dayEndNone)
+                {
+                    availableIntervalsNone.Add($"{slotNone:HH:mm} - {nextSlot:HH:mm}");
+                }
+
+                slotNone = nextSlot;
+            }
+
             //for self session
             result.Insert(0, new TrainerIntervalResponseDto
             {
                 TrainerId = null,
                 TrainerName = "None",
-                Intervals = new List<string>()
+                Intervals = availableIntervalsNone
             });
 
             return result;
@@ -351,7 +381,7 @@ namespace GymFit.Services
 
         public async Task<string> EnrollmentCourse(EnrollmentCourseDto model)
         {
-            var isEnrolled = await _context.ClientCourseEnrollments.FirstOrDefaultAsync(x => x.ClientId == model.ClientId);
+            var isEnrolled = await _context.ClientCourseEnrollments.FirstOrDefaultAsync(x => x.ClientId == model.ClientId && x.CourseId == model.CourseId);
             if (isEnrolled != null) {
                 return "Failed";
             }
